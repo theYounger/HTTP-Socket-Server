@@ -1,49 +1,30 @@
 const net = require('net');
+const fs = require('fs');
+const parser = require('./parse.js');
 
 const server = net.createServer((socket) => {
-  socket.write('Echo server\r\n');
-  // socket.write(resIndex);
 
   socket.on('data', (data) => {
-    const dataParse = data.toString();
-    // path.basename('public/index.html');
-    console.log(dataParse);
-    socket.write(resIndex);
-
+    dataString = data.toString();
+    console.log('dataString: ', dataString);
+    fs.readFile(parser(dataString)[0], (err, data) => {
+      console.log('err', err);
+      if (err) {
+        fs.readFile('./404.html', (err2, errorfile) => {
+          console.log('rip');
+          socket.write('HTTP/1.1 404 Not Found\r\n\r\n');
+          socket.write(errorfile.toString());
+          socket.end();
+        });
+      } else {
+        socket.write('HTTP/1.1 200 OK\r\n\r\n' + data.toString());
+        socket.end();
+      }
+    });
   });
 
-  // socket.on()
 });
 
-const resIndex = `
-HTTP/1.1 200 OK
-Content-Type: text/html; charset=utf-8
-Content-Length: 403
-Connection: keep-alive
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>The Elements</title>
-  <link rel="stylesheet" href="/css/styles.css">
-</head>
-<body>
-  <h1>The Elements</h1>
-  <h2>These are all the known elements.</h2>
-  <h3>These are 2</h3>
-  <ol>
-    <li>
-      <a href="/hydrogen.html">Hydrogen</a>
-    </li>
-    <li>
-      <a href="/helium.html">Helium</a>
-    </li>
-  </ol>
-</body>
-</html>
-`;
-
-server.listen(8080, function() {
+server.listen(8080, () => {
   console.log('All ears');
 });
